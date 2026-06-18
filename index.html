@@ -1,12 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>客戶管理系統</title>
+</head>
+
+<body>
+
 <h2>客戶管理系統</h2>
 
+<!-- ✅ 輸入姓名 -->
 <input id="name" placeholder="姓名">
+
+<!-- ✅ 輸入電話 -->
 <input id="phone" placeholder="電話">
 
+<!-- ✅ 按鈕 -->
 <button onclick="send()">新增</button>
+
 
 <script>
 function send(){
+
+    // ✅ 把資料送到 Python API
     fetch("/add_user", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -14,6 +30,26 @@ function send(){
             name: document.getElementById("name").value,
             phone: document.getElementById("phone").value
         })
+    })
+
+    // ✅ 解析回傳資料（很重要）
+    .then(response => response.json())
+
+    // ✅ 判斷成功或失敗
+    .then(data => {
+        if(data.status === "ok"){
+            alert("✅ 新增成功");
+        }else{
+            alert("❗ 新增失敗");
+        }
+    })
+
+    // ✅ 如果連不到API
+    .catch(error => {
+        alert("❗ 連線錯誤");
     });
 }
 </script>
+
+</body>
+</html>
