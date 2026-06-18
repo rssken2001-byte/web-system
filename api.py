@@ -1,40 +1,81 @@
 # ============================
-# ✅ 匯入套件（必要工具）
+# ✅ 匯入套件
 # ============================
 
-from fastapi import FastAPI                # 建立網站API
-from fastapi.responses import FileResponse # 回傳網頁檔
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+import sqlite3   # ✅ SQLite（輕量資料庫）
+
+app = FastAPI()
 
 # ============================
-# ✅ 建立系統（網站主體）
+# ✅ 建立資料庫（第一次會自動建立）
 # ============================
 
-app = FastAPI()   # 建立一個網站（後端系統）
+conn = sqlite3.connect("users.db", check_same_thread=False)
+cursor = conn.cursor()
+
+# ✅ 建表（如果沒有就自動建立）
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    phone TEXT
+)
+""")
+
+conn.commit()
 
 
 # ============================
-# ✅ 首頁（打開網址會顯示畫面）
+# ✅ 首頁
 # ============================
 
 @app.get("/")
 def home():
-    # 回傳 index.html（畫面）
     return FileResponse("index.html")
 
 
 # ============================
-# ✅ API：新增資料（按按鈕會呼叫）
+# ✅ 新增資料
 # ============================
 
 @app.post("/add_user")
 async def add_user(data: dict):
 
-    # ✅ 取得前端傳來的資料
-    name = data.get("name")     # 姓名
-    phone = data.get("phone")   # 電話
+    name = data.get("name")
+    phone = data.get("phone")
 
-    # ✅ 在後台印出（測試用）
-    print("✅ 新增資料：", name, phone)
+    # ✅ 存進SQL資料庫
+    cursor.execute(
+        "INSERT INTO users (name, phone) VALUES (?, ?)",
+        (name, phone)
+    )
 
-    # ✅ 回傳成功給前端
+    conn.commit()  # ✅ 一定要儲存！
+
+    print("✅ 已存SQL：", name, phone)
+
     return {"status": "ok"}
+
+
+# ============================
+# ✅ 查詢資料（進階）
+# ============================
+
+@app.get("/users")
+def get_users():
+
+    cursor.execute("SELECT * FROM users")
+    rows = cursor.fetchall()
+
+    # ✅ 轉成JSON格式
+    result = []
+    for r in rows:
+        result.append({
+            "id": r[0],
+            "name": r[1],
+            "phone": r[2]
+        })
+
+    return result
