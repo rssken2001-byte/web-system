@@ -1,153 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-    <meta charset="utf-8">
-    <title>客戶管理系統</title>
+<meta charset="UTF-8">
+<title>客戶管理系統</title>
 
-    <style>
-        /* ✅ 基本畫面設定 */
-        body {
-            font-family: Arial;
-            padding: 30px;
-        }
+<!-- ✅ CSS 美化 -->
+<style>
 
-        input {
-            padding: 8px;
-            margin-right: 10px;
-        }
-
-        button {
-            padding: 8px 15px;
-            cursor: pointer;
-        }
-
-        li {
-            margin-bottom: 5px;
-        }
-    </style>
-</head>
-
-<body>
-
-<h2>📌 客戶管理系統</h2>
-
-<!-- ✅ 輸入區 -->
-<input id="name" placeholder="姓名">
-<input id="phone" placeholder="電話">
-
-<button onclick="send()">新增</button>
-
-<hr>
-
-<h3>📋 客戶列表</h3>
-<ul id="list"></ul>
-
-<script>
-
-// ============================
-// ✅ 新增資料
-// ============================
-function send(){
-
-    let name = document.getElementById("name").value;
-    let phone = document.getElementById("phone").value;
-
-    // ✅ 防呆（不能空白）
-    if(!name || !phone){
-        alert("❗ 請填寫完整資料");
-        return;
-    }
-
-    // ✅ 呼叫 API
-    fetch("/add_user", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            name: name,
-            phone: phone
-        })
-    })
-
-    .then(res => res.json())
-    .then(data => {
-
-        if(data.status === "ok"){
-
-            alert("✅ 新增成功");
-
-            // ✅ 清空欄位
-            document.getElementById("name").value = "";
-            document.getElementById("phone").value = "";
-
-            // ✅ 重新載入清單
-            loadUsers();
-        }
-    });
+/* ✅ 整體背景 */
+body {
+    font-family: "Microsoft JhengHei";
+    background: #f5f6fa; /* 淺灰背景 */
+    margin: 0;
 }
 
-
-// ============================
-// ✅ 刪除資料（重要🔥）
-// ============================
-function deleteUser(id){
-
-    fetch("/delete_user/" + id, {
-        method: "DELETE"
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        alert("✅ 已刪除");
-
-        // ✅ 重新載入
-        loadUsers();
-    });
+/* ✅ 卡片容器 */
+.container {
+    width: 500px;
+    margin: 50px auto;   /* 置中 */
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
 }
 
-
-// ============================
-// ✅ 載入資料（核心）
-// ============================
-function loadUsers(){
-
-    fetch("/users")
-    .then(res => res.json())
-    .then(data => {
-
-        let list = document.getElementById("list");
-        list.innerHTML = "";
-
-        if(data.length === 0){
-            list.innerHTML = "<li>目前沒有資料</li>";
-            return;
-        }
-
-        data.forEach(user => {
-
-            let li = document.createElement("li");
-
-            // ✅ 顯示資料
-            li.textContent = user.name + " - " + user.phone + " ";
-
-            // ✅ 建立刪除按鈕
-            let btn = document.createElement("button");
-            btn.textContent = "刪除";
-
-            // ✅ 綁定刪除功能
-            btn.onclick = function(){
-                deleteUser(user.id);
-            };
-
-            li.appendChild(btn);
-            list.appendChild(li);
-        });
-    });
+/* ✅ 標題 */
+h1 {
+    text-align: center;
 }
 
-// ✅ 頁面一打開就載入
-loadUsers();
+/* ✅ 輸入框 */
+input {
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
 
-</script>
+/* ✅ 按鈕共用樣式 */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
 
-</body>
-</html>
+/* ✅ 新增按鈕 */
+.add-btn {
+    background: #4cd137;
+    color: white;
+}
+
+.add-btn:hover {
+    background: #44bd32;
+}
+
+/* ✅ 刪除按鈕 */
+.delete-btn {
+    background: #e84118;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #c23616;
+}
+
+/* ✅ 客戶列表 */
+.list-item {
+    background: #f8f9fa;
