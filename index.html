@@ -3,40 +3,96 @@
 <head>
     <meta charset="utf-8">
     <title>客戶管理系統</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 30px;
+        }
+
+        input {
+            padding: 8px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 
 <body>
 
-<h2>客戶管理系統</h2>
+<h2>📌 客戶管理系統</h2>
 
+<!-- ✅ 輸入區 -->
 <input id="name" placeholder="姓名">
 <input id="phone" placeholder="電話">
 
 <button onclick="send()">新增</button>
 
+<hr>
+
 <h3>📋 客戶列表</h3>
 <ul id="list"></ul>
 
 <script>
+
 function send(){
+
+    let name = document.getElementById("name").value;
+    let phone = document.getElementById("phone").value;
+
+    // ✅ 1️⃣ 空值檢查（超重要）
+    if(!name || !phone){
+        alert("❗ 請填寫完整資料");
+        return;
+    }
 
     fetch("/add_user", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-            name: document.getElementById("name").value,
-            phone: document.getElementById("phone").value
+            name: name,
+            phone: phone
         })
     })
+
     .then(response => response.json())
+
     .then(data => {
-        alert("✅ 新增成功");
-        loadUsers(); // ✅ 新增後重新載入
+
+        if(data.status === "ok"){
+
+            alert("✅ 新增成功");
+
+            // ✅ 2️⃣ 清空輸入框（使用體驗）
+            document.getElementById("name").value = "";
+            document.getElementById("phone").value = "";
+
+            // ✅ 3️⃣ 重新載入資料
+            loadUsers();
+
+        } else {
+            alert("❗ 新增失敗");
+        }
+    })
+
+    // ✅ 4️⃣ 網路錯誤
+    .catch(error => {
+        alert("❗ 伺服器錯誤");
     });
 }
 
-// ✅ 載入資料
+
+// ✅ 載入資料（核心）
 function loadUsers(){
+
     fetch("/users")
     .then(res => res.json())
     .then(data => {
@@ -44,15 +100,28 @@ function loadUsers(){
         let list = document.getElementById("list");
         list.innerHTML = "";
 
+        if(data.length === 0){
+            list.innerHTML = "<li>目前沒有資料</li>";
+            return;
+        }
+
         data.forEach(user => {
+
             let li = document.createElement("li");
+
             li.textContent = user.name + " - " + user.phone;
+
             list.appendChild(li);
         });
+    })
+
+    .catch(error => {
+        console.log("讀取資料失敗");
     });
 }
 
-// ✅ 一開頁就載入
+
+// ✅ 一開始載入全部資料
 loadUsers();
 
 </script>
