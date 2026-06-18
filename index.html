@@ -1,0 +1,19 @@
+<h2>客戶管理系統</h2>
+
+<input id="name" placeholder="姓名">
+<input id="phone" placeholder="電話">
+
+<button onclick="send()">新增</button>
+
+<script>
+function send(){
+    fetch("/add_user", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: document.getElementById("name").value,
+            phone: document.getElementById("phone").value
+        })
+    });
+}
+</script>
