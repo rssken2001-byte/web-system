@@ -1,34 +1,40 @@
 # ============================
-# ✅ 匯入套件（系統基本功能）
+# ✅ 匯入套件（必要工具）
 # ============================
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
 
-# 建立網站 (API伺服器)
-app = FastAPI()
-
+from fastapi import FastAPI                # 建立網站API
+from fastapi.responses import FileResponse # 回傳網頁檔
 
 # ============================
-# ✅ 首頁（打開會看到網頁）
+# ✅ 建立系統（網站主體）
 # ============================
+
+app = FastAPI()   # 建立一個網站（後端系統）
+
+
+# ============================
+# ✅ 首頁（打開網址會顯示畫面）
+# ============================
+
 @app.get("/")
 def home():
-    # 回傳 index.html（前端畫面）
+    # 回傳 index.html（畫面）
     return FileResponse("index.html")
 
 
 # ============================
-# ✅ 新增資料（按按鈕時觸發）
+# ✅ API：新增資料（按按鈕會呼叫）
 # ============================
+
 @app.post("/add_user")
 async def add_user(data: dict):
 
-    # ✅ 從前端拿使用者輸入的資料
-    name = data.get("name")   # 取得姓名
-    phone = data.get("phone") # 取得電話
+    # ✅ 取得前端傳來的資料
+    name = data.get("name")     # 姓名
+    phone = data.get("phone")   # 電話
 
-    # ✅ 目前先「印出來」（測試系統是否正常）
+    # ✅ 在後台印出（測試用）
     print("✅ 新增資料：", name, phone)
 
-    # ✅ 回傳成功訊息給前端
+    # ✅ 回傳成功給前端
     return {"status": "ok"}
