@@ -9,20 +9,17 @@
 
 <h2>客戶管理系統</h2>
 
-<!-- ✅ 輸入姓名 -->
 <input id="name" placeholder="姓名">
-
-<!-- ✅ 輸入電話 -->
 <input id="phone" placeholder="電話">
 
-<!-- ✅ 按鈕 -->
 <button onclick="send()">新增</button>
 
+<h3>📋 客戶列表</h3>
+<ul id="list"></ul>
 
 <script>
 function send(){
 
-    // ✅ 把資料送到 Python API
     fetch("/add_user", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -31,24 +28,33 @@ function send(){
             phone: document.getElementById("phone").value
         })
     })
-
-    // ✅ 解析回傳資料（很重要）
     .then(response => response.json())
-
-    // ✅ 判斷成功或失敗
     .then(data => {
-        if(data.status === "ok"){
-            alert("✅ 新增成功");
-        }else{
-            alert("❗ 新增失敗");
-        }
-    })
-
-    // ✅ 如果連不到API
-    .catch(error => {
-        alert("❗ 連線錯誤");
+        alert("✅ 新增成功");
+        loadUsers(); // ✅ 新增後重新載入
     });
 }
+
+// ✅ 載入資料
+function loadUsers(){
+    fetch("/users")
+    .then(res => res.json())
+    .then(data => {
+
+        let list = document.getElementById("list");
+        list.innerHTML = "";
+
+        data.forEach(user => {
+            let li = document.createElement("li");
+            li.textContent = user.name + " - " + user.phone;
+            list.appendChild(li);
+        });
+    });
+}
+
+// ✅ 一開頁就載入
+loadUsers();
+
 </script>
 
 </body>
