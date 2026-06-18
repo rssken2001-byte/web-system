@@ -5,13 +5,14 @@
 <title>客戶管理系統</title>
 
 <style>
-/* ✅ 整體背景設定 */
+
+/* ✅ 整體背景 */
 body {
     font-family: "Microsoft JhengHei";
     background: #f5f6fa;
 }
 
-/* ✅ 白色卡片 */
+/* ✅ 中間白色卡片 */
 .container {
     width: 500px;
     margin: 50px auto;
@@ -24,10 +25,10 @@ body {
 /* ✅ 輸入框 */
 input {
     padding: 8px;
-    margin-right: 5px;
+    margin: 5px;
 }
 
-/* ✅ 按鈕共同樣式 */
+/* ✅ 按鈕 */
 button {
     padding: 8px 12px;
     border: none;
@@ -35,31 +36,19 @@ button {
     cursor: pointer;
 }
 
-/* ✅ 新增按鈕 */
-.add-btn {
-    background: green;
-    color: white;
-}
+/* ✅ 各種按鈕顏色 */
+.add-btn { background: green; color: white; }
+.delete-btn { background: red; color: white; }
+.edit-btn { background: orange; color: white; }
 
-/* ✅ 刪除按鈕 */
-.delete-btn {
-    background: red;
-    color: white;
-}
-
-/* ✅ 修改按鈕 */
-.edit-btn {
-    background: orange;
-    color: white;
-}
-
-/* ✅ 列表區 */
+/* ✅ 列表樣式 */
 .list-item {
     background: #eee;
     margin-top: 10px;
     padding: 10px;
     border-radius: 5px;
 }
+
 </style>
 </head>
 
@@ -74,10 +63,11 @@ button {
 <input id="phone" placeholder="電話">
 <button class="add-btn" onclick="add()">新增</button>
 
-<br><br>
+<br>
 
-<!-- ✅ 搜尋欄（輸入會自動查） -->
-<input id="search" placeholder="搜尋姓名" oninput="render()">
+<!-- ✅ 查詢區 -->
+<input id="search" placeholder="搜尋姓名">
+<button onclick="search()">查詢</button>
 
 <hr>
 
@@ -88,95 +78,103 @@ button {
 
 <script>
 
-/* =====================================
-✅ 1️⃣ 資料區（最重要）
-===================================== */
+/* ============================
+✅ 1️⃣ 資料來源（最重要）
+============================ */
 
 // ✅ 從瀏覽器讀資料（沒有就空陣列）
 let data = JSON.parse(localStorage.getItem("customers")) || [];
 
 
-/* =====================================
-✅ 2️⃣ 新增功能
-===================================== */
+/* ============================
+✅ 2️⃣ 儲存資料（共用函數）
+============================ */
+function save(){
+    // ✅ 把資料轉成文字存進瀏覽器
+    localStorage.setItem("customers", JSON.stringify(data));
+}
+
+
+/* ============================
+✅ 3️⃣ 新增功能
+============================ */
 function add(){
 
-    // ✅ 取得輸入的值
-    let name = document.getElementById("name").value;
-    let phone = document.getElementById("phone").value;
+    // ✅ 抓輸入內容
+    let name = document.getElementById("name").value.trim();
+    let phone = document.getElementById("phone").value.trim();
 
-    // ✅ 防呆（不能空白）
+    // ✅ 防呆：不能空
     if(name === "" || phone === ""){
         alert("請輸入資料");
         return;
     }
 
-    // ✅ 新增到資料陣列
+    // ✅ 加進資料
     data.push({name, phone});
 
-    // ✅ 存進瀏覽器（重要🔥）
-    localStorage.setItem("customers", JSON.stringify(data));
+    save();      // ✅ 儲存
+    render();    // ✅ 更新畫面
 
-    // ✅ 重新畫畫面
-    render();
-
-    // ✅ 清空欄位
+    // ✅ 清空輸入框
     document.getElementById("name").value = "";
     document.getElementById("phone").value = "";
 }
 
 
-/* =====================================
-✅ 3️⃣ 刪除功能
-===================================== */
+/* ============================
+✅ 4️⃣ 刪除功能
+============================ */
 function remove(index){
 
-    // ✅ 刪除指定資料
-    data.splice(index, 1);
-
-    // ✅ 更新儲存（一定要）
-    localStorage.setItem("customers", JSON.stringify(data));
-
-    render();
-}
-
-
-/* =====================================
-✅ 4️⃣ 修改功能（加分🔥）
-===================================== */
-function edit(index){
-
-    // ✅ 跳出輸入框讓使用者修改
-    let newName = prompt("修改姓名：", data[index].name);
-    let newPhone = prompt("修改電話：", data[index].phone);
-
-    // ✅ 確保有輸入
-    if(newName && newPhone){
-        data[index].name = newName;
-        data[index].phone = newPhone;
-
-        // ✅ 更新儲存
-        localStorage.setItem("customers", JSON.stringify(data));
-
+    if(confirm("確定刪除？")){
+        data.splice(index,1);  // ✅ 刪掉
+        save();
         render();
     }
 }
 
 
-/* =====================================
-✅ 5️⃣ 顯示畫面（核心）
-===================================== */
+/* ============================
+✅ 5️⃣ 修改功能
+============================ */
+function edit(index){
+
+    let newName = prompt("修改姓名", data[index].name);
+    let newPhone = prompt("修改電話", data[index].phone);
+
+    if(newName && newPhone){
+        data[index].name = newName.trim();
+        data[index].phone = newPhone.trim();
+
+        save();
+        render();
+    }
+}
+
+
+/* ============================
+✅ 6️⃣ 查詢按鈕
+============================ */
+function search(){
+    render();  // ✅ 直接重新顯示
+}
+
+
+/* ============================
+✅ 7️⃣ 顯示畫面（核心🔥）
+============================ */
 function render(){
 
     let html = "";
 
-    // ✅ 取得搜尋文字
+    // ✅ 取搜尋文字
     let keyword = document.getElementById("search").value.toLowerCase();
 
-    // ✅ 跑每筆資料
+    // ✅ 逐筆顯示
     data.forEach((item, i) => {
 
-        // ✅ 搜尋過濾（只有符合才顯示）
+        // ✅ 如果符合搜尋
         if(item.name.toLowerCase().includes(keyword)){
 
             html += `
@@ -190,14 +188,21 @@ function render(){
         }
     });
 
-    // ✅ 更新畫面
     document.getElementById("list").innerHTML = html;
 }
 
 
-/* =====================================
-✅ 6️⃣ 開頁自動載入（重要🔥）
-===================================== */
+/* ============================
+✅ 8️⃣ Enter快捷鍵（加分🔥）
+============================ */
+document.getElementById("phone").addEventListener("keypress", function(e){
+    if(e.key === "Enter"){
+        add();
+    }
+});
+
+
+/* ✅ 開頁自動顯示資料 */
 render();
 
 </script>
