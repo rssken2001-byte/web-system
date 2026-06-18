@@ -5,6 +5,7 @@
     <title>客戶管理系統</title>
 
     <style>
+        /* ✅ 基本畫面設定 */
         body {
             font-family: Arial;
             padding: 30px;
@@ -43,17 +44,21 @@
 
 <script>
 
+// ============================
+// ✅ 新增資料
+// ============================
 function send(){
 
     let name = document.getElementById("name").value;
     let phone = document.getElementById("phone").value;
 
-    // ✅ 1️⃣ 空值檢查（超重要）
+    // ✅ 防呆（不能空白）
     if(!name || !phone){
         alert("❗ 請填寫完整資料");
         return;
     }
 
+    // ✅ 呼叫 API
     fetch("/add_user", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -63,34 +68,46 @@ function send(){
         })
     })
 
-    .then(response => response.json())
-
+    .then(res => res.json())
     .then(data => {
 
         if(data.status === "ok"){
 
             alert("✅ 新增成功");
 
-            // ✅ 2️⃣ 清空輸入框（使用體驗）
+            // ✅ 清空欄位
             document.getElementById("name").value = "";
             document.getElementById("phone").value = "";
 
-            // ✅ 3️⃣ 重新載入資料
+            // ✅ 重新載入清單
             loadUsers();
-
-        } else {
-            alert("❗ 新增失敗");
         }
-    })
-
-    // ✅ 4️⃣ 網路錯誤
-    .catch(error => {
-        alert("❗ 伺服器錯誤");
     });
 }
 
 
+// ============================
+// ✅ 刪除資料（重要🔥）
+// ============================
+function deleteUser(id){
+
+    fetch("/delete_user/" + id, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert("✅ 已刪除");
+
+        // ✅ 重新載入
+        loadUsers();
+    });
+}
+
+
+// ============================
 // ✅ 載入資料（核心）
+// ============================
 function loadUsers(){
 
     fetch("/users")
@@ -109,19 +126,25 @@ function loadUsers(){
 
             let li = document.createElement("li");
 
-            li.textContent = user.name + " - " + user.phone;
+            // ✅ 顯示資料
+            li.textContent = user.name + " - " + user.phone + " ";
 
+            // ✅ 建立刪除按鈕
+            let btn = document.createElement("button");
+            btn.textContent = "刪除";
+
+            // ✅ 綁定刪除功能
+            btn.onclick = function(){
+                deleteUser(user.id);
+            };
+
+            li.appendChild(btn);
             list.appendChild(li);
         });
-    })
-
-    .catch(error => {
-        console.log("讀取資料失敗");
     });
 }
 
-
-// ✅ 一開始載入全部資料
+// ✅ 頁面一打開就載入
 loadUsers();
 
 </script>
