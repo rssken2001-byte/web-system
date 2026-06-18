@@ -19,6 +19,11 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
+input {
+    padding: 8px;
+    margin-right: 5px;
+}
+
 button {
     padding: 8px 12px;
     border: none;
@@ -35,6 +40,11 @@ button {
     color: white;
 }
 
+.edit-btn {
+    background: orange;
+    color: white;
+}
+
 .list-item {
     background: #eee;
     margin-top: 10px;
@@ -42,7 +52,6 @@ button {
     border-radius: 5px;
 }
 </style>
-
 </head>
 
 <body>
@@ -51,9 +60,15 @@ button {
 
 <h1>📌 客戶管理系統</h1>
 
+<!-- ✅ 輸入 -->
 <input id="name" placeholder="姓名">
 <input id="phone" placeholder="電話">
 <button class="add-btn" onclick="add()">新增</button>
+
+<br><br>
+
+<!-- ✅ 搜尋功能 -->
+<input id="search" placeholder="搜尋姓名" oninput="render()">
 
 <hr>
 
@@ -63,9 +78,14 @@ button {
 
 <script>
 
-let data = [];
+// ✅ 從瀏覽器讀資料（沒有就給空陣列）
+let data = JSON.parse(localStorage.getItem("customers")) || [];
 
+/* ===========================
+✅ 新增客戶
+=========================== */
 function add(){
+
     let name = document.getElementById("name").value;
     let phone = document.getElementById("phone").value;
 
@@ -74,32 +94,50 @@ function add(){
         return;
     }
 
+    // ✅ 加入資料
     data.push({name, phone});
+
+    // ✅ 存進瀏覽器
+    localStorage.setItem("customers", JSON.stringify(data));
+
     render();
+
+    // ✅ 清空欄位
+    document.getElementById("name").value = "";
+    document.getElementById("phone").value = "";
 }
 
+/* ===========================
+✅ 刪除
+=========================== */
 function remove(index){
+
     data.splice(index,1);
+
+    // ✅ 同步更新
+    localStorage.setItem("customers", JSON.stringify(data));
+
     render();
 }
 
-function render(){
+/* ===========================
+✅ 編輯（超加分🔥）
+=========================== */
+function edit(index){
 
-    let html = "";
+    let newName = prompt("修改姓名：", data[index].name);
+    let newPhone = prompt("修改電話：", data[index].phone);
 
-    data.forEach((item, i) => {
-        html += `
-        <div class="list-item">
-            ${item.name} - ${item.phone}
-            <button class="delete-btn" onclick="remove(${i})">刪除</button>
-        </div>
-        `;
-    });
+    if(newName && newPhone){
+        data[index].name = newName;
+        data[index].phone = newPhone;
 
-    document.getElementById("list").innerHTML = html;
+        localStorage.setItem("customers", JSON.stringify(data));
+        render();
+    }
 }
 
-</script>
-
-</body>
-</html>
+/* ===========================
+✅ 顯示畫面（核心）
+=========================== */
+function render(){
