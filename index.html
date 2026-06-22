@@ -1,255 +1,91 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <title>客戶管理系統</title>
-
-<style>
-
-/* ============================
-✅ 畫面設計
-============================ */
-
-/* 整體背景 */
-body {
-    font-family: "Microsoft JhengHei";
-    background: #f5f6fa;
-}
-
-/* 中間白卡片 */
-.container {
-    width: 500px;
-    margin: 50px auto;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-/* 輸入框 */
-input {
-    padding: 8px;
-    margin: 5px;
-}
-
-/* 按鈕 */
-button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-/* 顏色按鈕 */
-.add-btn { background: green; color: white; }
-.delete-btn { background: red; color: white; }
-.edit-btn { background: orange; color: white; }
-.csv-btn { background: #007bff; color: white; } /* ✅ CSV按鈕 */
-
-/* 列表 */
-.list-item {
-    background: #eee;
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-</style>
 </head>
 
 <body>
 
-<div class="container">
+<h2>📌 客戶管理系統</h2>
 
-<h1>📌 客戶管理系統</h1>
-
-<!-- ============================
-✅ 輸入區
-============================ -->
 <input id="name" placeholder="姓名">
 <input id="phone" placeholder="電話">
 
-<button class="add-btn" onclick="add()">新增</button>
-
-<!-- ✅ 新增：CSV按鈕 -->
-<button class="csv-btn" onclick="downloadCSV()">下載CSV</button>
-
-<br>
-
-<!-- ============================
-✅ 查詢區
-============================ -->
-<input id="search" placeholder="搜尋姓名">
-<button onclick="search()">查詢</button>
+<button onclick="add()">新增</button>
+<button onclick="downloadExcel()">下載Excel</button>
 
 <hr>
 
-<!-- ============================
-✅ 顯示資料
-============================ -->
 <div id="list"></div>
-
-</div>
 
 <script>
 
-/* ============================
-✅ 1️⃣ 資料來源（核心）
-============================ */
+// ✅ 載入資料
+function load(){
 
-// ✅ 從瀏覽器 localStorage 讀資料（沒有就空陣列）
-let data = JSON.parse(localStorage.getItem("customers")) || [];
+    fetch("/users")
+    .then(res => res.json())
+    .then(data => {
 
+        let html = "";
 
-/* ============================
-✅ 2️⃣ 儲存資料
-============================ */
-function save(){
+        data.forEach((item, i) => {
+            html += `
+            <p>
+                ${item.name} - ${item.phone}
 
-    // ✅ 把資料轉成文字存進瀏覽器
-    localStorage.setItem("customers", JSON.stringify(data));
+                <button onclick="remove(${item.id})">刪除</button>
+            </p>
+            `;
+        });
+
+        document.getElementById("list").innerHTML = html;
+    });
 }
 
 
-/* ============================
-✅ 3️⃣ 新增資料
-============================ */
+// ✅ 新增
 function add(){
 
-    let name = document.getElementById("name").value.trim();
-    let phone = document.getElementById("phone").value.trim();
+    let name = document.getElementById("name").value;
+    let phone = document.getElementById("phone").value;
 
-    if(name === "" || phone === ""){
-        alert("請輸入資料");
-        return;
-    }
-
-    // ✅ 存入資料陣列
-    data.push({name, phone});
-
-    save();
-    render();
-
-    document.getElementById("name").value = "";
-    document.getElementById("phone").value = "";
-}
-
-
-/* ============================
-✅ 4️⃣ 刪除功能
-============================ */
-function remove(index){
-
-    if(confirm("確定刪除？")){
-        data.splice(index,1);  // ✅ 從陣列移除
-        save();
-        render();
-    }
-}
-
-
-/* ============================
-✅ 5️⃣ 修改功能
-============================ */
-function edit(index){
-
-    let newName = prompt("修改姓名", data[index].name);
-    let newPhone = prompt("修改電話", data[index].phone);
-
-    if(newName && newPhone){
-        data[index].name = newName.trim();
-        data[index].phone = newPhone.trim();
-
-        save();
-        render();
-    }
-}
-
-
-/* ============================
-✅ 6️⃣ 查詢
-============================ */
-function search(){
-    render();
-}
-
-
-/* ============================
-✅ 7️⃣ 顯示資料（最重要🔥）
-============================ */
-function render(){
-
-    let html = "";
-    let keyword = document.getElementById("search").value.toLowerCase();
-
-    data.forEach((item, i) => {
-
-        if(item.name.toLowerCase().includes(keyword)){
-
-            html += `
-            <div class="list-item">
-                ${i+1}. ${item.name} - ${item.phone}
-
-                <button class="edit-btn" onclick="edit(${i})">修改</button>
-                <button class="delete-btn" onclick="remove(${i})">刪除</button>
-            </div>
-            `;
-        }
+    fetch("/add_user", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ name, phone })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("新增成功");
+        load();
     });
-
-    document.getElementById("list").innerHTML = html;
 }
 
 
-/* ============================
-✅ 8️⃣ CSV下載（新功能🔥）
-============================ */
-function downloadCSV(){
+// ✅ 刪除
+function remove(id){
 
-    // ✅ 沒資料不能下載
-    if(data.length === 0){
-        alert("沒有資料可以下載");
-        return;
-    }
-
-    // ✅ CSV表頭
-    let csv = "姓名,電話\n";
-
-    // ✅ 將資料轉成 CSV
-    data.forEach(item => {
-        csv += item.name + ',"' + item.phone + '"\n';
+    fetch("/delete_user/" + id, {
+        method:"DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("已刪除");
+        load();
     });
-
-    // ✅ 建立檔案
-    let blob = new Blob([csv], { type: "text/csv" });
-
-    // ✅ 建立下載連結
-    let url = window.URL.createObjectURL(blob);
-
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "customers.csv";
-
-    // ✅ 觸發下載
-    a.click();
-
-    // ✅ 釋放資源
-    window.URL.revokeObjectURL(url);
 }
 
 
-/* ============================
-✅ 9️⃣ Enter快捷鍵
-============================ */
-document.getElementById("phone").addEventListener("keypress", function(e){
-    if(e.key === "Enter"){
-        add();
-    }
-});
+// ✅ Excel下載（關鍵🔥）
+function downloadExcel(){
+    window.open("/download_excel");
+}
 
 
-/* ✅ 頁面啟動 */
-render();
+// ✅ 啟動
+load();
 
 </script>
 
