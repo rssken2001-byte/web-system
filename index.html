@@ -217,7 +217,7 @@ function downloadCSV(){
 
     // ✅ 將資料轉成 CSV
     data.forEach(item => {
-        csv += item.name + "," + item.phone + "\n";
+        csv += item.name + ',"' + item.phone + '"\n';
     });
 
     // ✅ 建立檔案
