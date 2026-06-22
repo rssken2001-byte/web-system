@@ -3,8 +3,10 @@
 # ============================
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
-import sqlite3   # ✅ SQLite 資料庫
+from fastapi.responses import FileResponse, Response
+import sqlite3
+import csv
+import io  # ✅ 用來在記憶體建立檔案
 
 # ============================
 # ✅ 建立網站系統
@@ -14,29 +16,21 @@ app = FastAPI()
 
 
 # ============================
-# ✅ 建立資料庫（會自動建立 users.db）
+# ✅ 建立資料庫
 # ============================
 
-# 建立資料庫連線（users.db 如果不存在會自動生成）
 conn = sqlite3.connect("users.db", check_same_thread=False)
-
-# 建立操作工具（cursor = 滑鼠操作資料庫）
 cursor = conn.cursor()
 
-
-# ============================
-# ✅ 建立資料表（如果沒有就建立）
-# ============================
-
+# ✅ 建立資料表
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- ✅ 自動編號
-    name TEXT,                             -- ✅ 姓名
-    phone TEXT                            -- ✅ 電話
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    phone TEXT
 )
 """)
 
-# ✅ 儲存變更（一定要）
 conn.commit()
 
 
@@ -46,7 +40,6 @@ conn.commit()
 
 @app.get("/")
 def home():
-    # 回傳 index.html 當畫面
     return FileResponse("index.html")
 
 
@@ -57,17 +50,14 @@ def home():
 @app.post("/add_user")
 async def add_user(data: dict):
 
-    # ✅ 從前端拿資料
     name = data.get("name")
     phone = data.get("phone")
 
-    # ✅ 寫入資料庫
     cursor.execute(
         "INSERT INTO users (name, phone) VALUES (?, ?)",
         (name, phone)
     )
 
-    # ✅ 儲存
     conn.commit()
 
     return {"status": "ok"}
@@ -80,18 +70,15 @@ async def add_user(data: dict):
 @app.get("/users")
 def get_users():
 
-    # ✅ 抓全部資料
     cursor.execute("SELECT * FROM users")
-
     rows = cursor.fetchall()
 
-    # ✅ 轉成 JSON 格式給前端
     result = []
     for r in rows:
         result.append({
-            "id": r[0],      # 編號
-            "name": r[1],    # 姓名
-            "phone": r[2]    # 電話
+            "id": r[0],
+            "name": r[1],
+            "phone": r[2]
         })
 
     return result
@@ -104,13 +91,44 @@ def get_users():
 @app.delete("/delete_user/{user_id}")
 def delete_user(user_id: int):
 
-    # ✅ 根據ID刪除
     cursor.execute(
-        "DELETE FROM users WHERE id = ?",   # SQLite 要用 ?
+        "DELETE FROM users WHERE id = ?",
         (user_id,)
     )
 
-    # ✅ 儲存
     conn.commit()
 
     return {"status": "deleted"}
+
+
+# ============================
+# ✅ ✅ ✅ 匯出 CSV（新增功能🔥）
+# ============================
+
+@app.get("/download_csv")
+def download_csv():
+
+    # ✅ 1️⃣ 從資料庫抓資料
+    cursor.execute("SELECT * FROM users")
+    rows = cursor.fetchall()
+
+    # ✅ 2️⃣ 在記憶體建立「CSV檔案」
+    output = io.StringIO()
+
+    writer = csv.writer(output)
+
+    # ✅ 3️⃣ 寫表頭
+    writer.writerow(["ID", "姓名", "電話"])
+
+    # ✅ 4️⃣ 寫資料
+    for r in rows:
+        writer.writerow(r)
+
+    # ✅ 5️⃣ 回傳下載檔案
+    return Response(
+        content=output.getvalue(),   # CSV內容
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=customers.csv"
+        }
+    )
